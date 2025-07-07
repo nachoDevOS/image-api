@@ -1,5 +1,11 @@
 <h1 align="center">Images Generator from URL</h1>
 
+Ver actualizaciones con npm outdated
+
+## Update package.jsom
+```sh
+npm outdated
+```
 Paquete para generar imágenes a partir de una página web.
 
 ## Install
