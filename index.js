@@ -40,7 +40,7 @@ app.get('/generate', async (req, res) => {
     if (!fs.existsSync(filesDir)){
         fs.mkdirSync(filesDir);
     }
-    res.json({status:1, message: 'Welcome to ImagesGenerator!'});
+    res.json({status:1, message: 'Hola!'});
 
     const website_url = req.query.url ? req.query.url : process.env.URL_DEV;
 
