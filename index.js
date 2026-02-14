@@ -14,7 +14,13 @@ let browserPromise;
 function getBrowser() {
     if (!browserPromise) {
         browserPromise = puppeteer.launch({
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--disable-gpu'
+            ]
         }).then(browser => {
             browser.on('disconnected', () => { browserPromise = null; });
             return browser;
@@ -28,6 +34,10 @@ function getBrowser() {
 getBrowser(); // Pre-calentar el navegador al inicio
 
 const filesDir = './public';
+if (!fs.existsSync(filesDir)){
+    fs.mkdirSync(filesDir);
+}
+
 const URL = process.env.APP_DOMAIN;
 const PORT = process.env.APP_PORT;
 const ENV = process.env.APP_ENV;
@@ -69,14 +79,10 @@ app.get('/generate', async (req, res) => {
             deviceScaleFactor: 1,
         });
 
-        if (!fs.existsSync(filesDir)){
-            fs.mkdirSync(filesDir);
-        }
-
         const website_url = req.query.url ? req.query.url : process.env.URL_DEV;
 
         // Open URL in current page  
-        await page.goto(website_url, { waitUntil: 'networkidle0' });
+        await page.goto(website_url, { waitUntil: 'networkidle2' });
         
         await page.evaluate(() => {
             window.scrollBy(0, window.innerHeight);
