@@ -8,6 +8,18 @@ const bodyParser = require('body-parser');
 
 require('dotenv').config()
 
+let browser;
+
+async function getBrowser() {
+    if (!browser || !browser.isConnected()) {
+        browser = await puppeteer.launch({
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
+    }
+    return browser;
+}
+getBrowser(); // Pre-calentar el navegador al inicio
+
 const filesDir = './public';
 const URL = process.env.APP_DOMAIN;
 const PORT = process.env.APP_PORT;
@@ -36,9 +48,7 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/generate', async (req, res) => {
-    const browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+    const browser = await getBrowser();
     const page = await browser.newPage();
     await page.setViewport({
         width: 512,
@@ -66,7 +76,7 @@ app.get('/generate', async (req, res) => {
 		fullPage: true
 	});
 	
-	await browser.close();
+	await page.close();
 
     // Registrar en los logs
     const date = new Date().toJSON();
