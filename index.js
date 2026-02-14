@@ -8,10 +8,17 @@ const bodyParser = require('body-parser');
 
 require('dotenv').config()
 
-const server = http.createServer(app);
 const filesDir = './public';
-const URL = process.env.URL;
-const PORT = process.env.PORT;
+const URL = process.env.APP_DOMAIN;
+const PORT = process.env.APP_PORT;
+const ENV = process.env.APP_ENV;
+
+// const server = http.createServer(app);
+
+const server = ENV == 'dev' ? http.createServer(app) : http.createServer(app, {
+    key: fs.readFileSync(`/etc/letsencrypt/live/${URL}/privkey.pem`),
+    cert: fs.readFileSync(`/etc/letsencrypt/live/${URL}/fullchain.pem`)
+});
 
 app.use(bodyParser.json());
 app.use(express.static('public'));
