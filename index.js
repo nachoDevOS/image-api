@@ -1,7 +1,6 @@
 const express = require('express');
 const app = express();
 const http = require('http');
-const https = require('https');
 var fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer');
@@ -16,10 +15,10 @@ const ENV = process.env.APP_ENV;
 
 // const server = http.createServer(app);
 
-const server = ENV == 'dev' ? http.createServer(app) : https.createServer({
+const server = ENV == 'dev' ? http.createServer(app) : http.createServer(app, {
     key: fs.readFileSync(`/etc/letsencrypt/live/${URL}/privkey.pem`),
     cert: fs.readFileSync(`/etc/letsencrypt/live/${URL}/fullchain.pem`)
-}, app);
+});
 
 app.use(bodyParser.json());
 app.use(express.static('public'));
@@ -37,9 +36,7 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/generate', async (req, res) => {
-    const browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+    const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.setViewport({
         width: 512,
@@ -73,8 +70,7 @@ app.get('/generate', async (req, res) => {
     const date = new Date().toJSON();
     registerLog('generate.log', `{"url": "${website_url}", "date": "${date}"}\n`);
     
-    const protocol = ENV == 'dev' ? 'http' : 'https';
-    res.json({url: `${protocol}://${URL}:${PORT}/${fileName}.png`});
+    res.json({url: `${URL}:${PORT}/${fileName}.png`});
 });
 
 function registerLog(file, text) {
