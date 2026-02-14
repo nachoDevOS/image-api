@@ -73,6 +73,17 @@ app.get('/generate', async (req, res) => {
     const browser = await getBrowser();
     const page = await browser.newPage();
     try {
+        // Optimización: Bloquear recursos innecesarios (videos, tracking, etc.) para acelerar la carga
+        await page.setRequestInterception(true);
+        page.on('request', (request) => {
+            const resourceType = request.resourceType();
+            if (['media', 'websocket', 'manifest', 'texttrack', 'beacon', 'csp_report', 'imageset'].includes(resourceType)) {
+                request.abort();
+            } else {
+                request.continue();
+            }
+        });
+
         await page.setViewport({
             width: 512,
             height: 0,
@@ -85,6 +96,10 @@ app.get('/generate', async (req, res) => {
         await page.goto(website_url, { waitUntil: 'networkidle2' });
         
         await page.evaluate(() => {
+            // Deshabilitar animaciones para estabilizar la página más rápido
+            const style = document.createElement('style');
+            style.innerHTML = `*, *::before, *::after { transition: none !important; animation: none !important; }`;
+            document.head.appendChild(style);
             window.scrollBy(0, window.innerHeight);
         });
 
