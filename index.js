@@ -62,39 +62,44 @@ app.get('/generate', async (req, res) => {
 
     const browser = await getBrowser();
     const page = await browser.newPage();
-    await page.setViewport({
-        width: 512,
-        height: 0,
-        deviceScaleFactor: 1,
-    });
+    try {
+        await page.setViewport({
+            width: 512,
+            height: 0,
+            deviceScaleFactor: 1,
+        });
 
-    if (!fs.existsSync(filesDir)){
-        fs.mkdirSync(filesDir);
+        if (!fs.existsSync(filesDir)){
+            fs.mkdirSync(filesDir);
+        }
+
+        const website_url = req.query.url ? req.query.url : process.env.URL_DEV;
+
+        // Open URL in current page  
+        await page.goto(website_url, { waitUntil: 'networkidle0' });
+        
+        await page.evaluate(() => {
+            window.scrollBy(0, window.innerHeight);
+        });
+
+        const fileName = new Date().getTime();
+        
+        await page.screenshot({
+            path: `${__dirname}/public/${fileName}.png`,
+            fullPage: true
+        });
+
+        // Registrar en los logs
+        const date = new Date().toJSON();
+        registerLog('generate.log', `{"url": "${website_url}", "date": "${date}"}\n`);
+        
+        res.json({url: `${URL}/${fileName}.png`});
+    } catch (e) {
+        console.error('Error generando imagen:', e);
+        res.status(500).json({ error: 'Error al generar la imagen' });
+    } finally {
+        await page.close();
     }
-
-    const website_url = req.query.url ? req.query.url : process.env.URL_DEV;
-
-    // Open URL in current page  
-    await page.goto(website_url, { waitUntil: 'networkidle0' });
-	
-	await page.evaluate(() => {
-		window.scrollBy(0, window.innerHeight);
-	});
-
-    const fileName = new Date().getTime();
-	
-	await page.screenshot({
-		path: `${__dirname}/public/${fileName}.png`,
-		fullPage: true
-	});
-	
-	await page.close();
-
-    // Registrar en los logs
-    const date = new Date().toJSON();
-    registerLog('generate.log', `{"url": "${website_url}", "date": "${date}"}\n`);
-    
-    res.json({url: `${URL}/${fileName}.png`});
 });
 
 function registerLog(file, text) {
