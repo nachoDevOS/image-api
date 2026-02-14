@@ -72,7 +72,7 @@ app.get('/generate', async (req, res) => {
     const date = new Date().toJSON();
     registerLog('generate.log', `{"url": "${website_url}", "date": "${date}"}\n`);
     
-    res.json({url: `${URL}:${PORT}/${fileName}.png`});
+    res.json({url: `${URL}/${fileName}.png`});
 });
 
 function registerLog(file, text) {
